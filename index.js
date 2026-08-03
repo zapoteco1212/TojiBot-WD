@@ -20,7 +20,7 @@ async function TojiBot() {
   })
 
   if (!sock.authState.creds.registered) {
-    const phoneNumber = '5217442573779'
+    const phoneNumber = '526451030817'
     const code = await sock.requestPairingCode(phoneNumber.trim())
     console.log(`\n TU CODE ES: ${code} \n Ponlo en WhatsApp > Dispositivos vinculados > Vincular con numero`)
   }
