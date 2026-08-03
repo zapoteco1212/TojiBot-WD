@@ -18,7 +18,7 @@ const fs = require('fs');
 const TOJI = {
   NOMBRE: "TojiBot",
   ALIAS: "El Asesino de Hechiceros",
-  CREADOR: "@Bryan", // TU NOMBRE/USUARIO
+  CREADOR: "@Werkito", // TU NOMBRE/USUARIO
   VERSION: "1.0.0",
   API: "https://api.evogb.org",
   PREFIJO: "·", // EXCLUSIVO DE TOJI — NO USAR ×
