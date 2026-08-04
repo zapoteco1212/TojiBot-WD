@@ -1,5 +1,3 @@
-// Dependiendo de tu librería (baileys o whatsapp-web.js), importa tu cliente aquí.
-// Ejemplo común con whatsapp-web.js:
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg;
 
@@ -19,7 +17,7 @@ client.on('ready', () => {
 
 client.on('message', async (msg) => {
     const texto = msg.body;
-    console.log(`Mensaje recibido: ${texto}`); // Esto te imprimirá en la consola de Termux si lee los mensajes
+    console.log(`Mensaje recibido: ${texto}`);
 
     if (!texto.startsWith(PREFIJO)) return;
 
