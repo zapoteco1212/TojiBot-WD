@@ -1,34 +1,17 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-
 const execAsync = promisify(exec);
-const PREFIJO = '!';
 
-const manejarMensaje = async (msg) => {
-    const texto = msg.body;
-
-    if (!texto.startsWith(PREFIJO)) return;
-
-    const args = texto.slice(PREFIJO.length).trim().split(/ +/);
-    const comando = args.shift().toLowerCase();
-
-    if (comando === 'ping') {
-        await msg.reply('pong! 🏓');
-    }
-
-    if (comando === 'fix') {
-        await msg.reply('🔄 Descargando cambios desde GitHub y actualizando...');
-
+export default {
+    name: 'fix',
+    async run(msg, client, usedPrefix) {
+        await msg.reply('🔄 Actualizando desde GitHub y reiniciando...');
         try {
             const { stdout } = await execAsync('git pull');
-            
             await msg.reply(`✅ Git Pull exitoso:\n\`\`\`${stdout.trim()}\`\`\`\nReiniciando bot...`);
-
-            process.exit(0);
+            process.exit(0); // Reinicia el proceso
         } catch (error) {
-            await msg.reply(`❌ Error al actualizar desde GitHub:\n\`\`\`${error.message}\`\`\``);
+            await msg.reply(`❌ Error al actualizar:\n\`\`\`${error.message}\`\`\``);
         }
     }
 };
-
-export default manejarMensaje;
