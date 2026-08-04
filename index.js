@@ -1,43 +1,39 @@
-import client from './tu-cliente-whatsapp.js'; // Ajusta esto a tu cliente
-import { PREFIJO } from './prefix.js'; // Importa el prefijo que definiste
-import fs from 'fs';
-import path from 'path';
+// Dependiendo de tu librería (baileys o whatsapp-web.js), importa tu cliente aquí.
+// Ejemplo común con whatsapp-web.js:
+import pkg from 'whatsapp-web.js';
+const { Client, LocalAuth } = pkg;
 
-const comandosPath = path.join(process.cwd(), 'comandos');
-const comandosFiles = fs.readdirSync(comandosPath).filter(file => file.endsWith('.js'));
+const client = new Client({
+    authStrategy: new LocalAuth()
+});
 
-// Variable para guardar los comandos cargados
-const commands = new Map();
+const PREFIJO = '!';
 
-// Carga dinámica de comandos
-(async () => {
-    for (const file of comandosFiles) {
-        const filePath = path.join(comandosPath, file);
-        const { default: command } = await import(filePath);
-        if (command && command.name) {
-            commands.set(command.name, command);
-            console.log(`✅ Comando cargado: ${command.name}`);
-        }
-    }
-})();
+client.on('qr', (qr) => {
+    console.log('Escanea este código QR por favor:');
+});
 
-// Escucha de mensajes
+client.on('ready', () => {
+    console.log('¡Bot conectado y listo en Termux! 🚀');
+});
+
 client.on('message', async (msg) => {
     const texto = msg.body;
+    console.log(`Mensaje recibido: ${texto}`); // Esto te imprimirá en la consola de Termux si lee los mensajes
 
     if (!texto.startsWith(PREFIJO)) return;
 
     const args = texto.slice(PREFIJO.length).trim().split(/ +/);
-    const comandoNombre = args.shift().toLowerCase();
+    const comando = args.shift().toLowerCase();
 
-    // Busca y ejecuta el comando si existe
-    const commandToRun = commands.get(comandoNombre);
-    if (commandToRun) {
-        try {
-            await commandToRun.run(msg, client);
-        } catch (error) {
-            console.error(`Error ejecutando ${comandoNombre}:`, error);
-            await msg.reply('❌ Ocurrió un error al ejecutar este comando.');
-        }
+    if (comando === 'ping') {
+        await msg.reply('pong! 🏓');
+    }
+
+    if (comando === 'fix') {
+        await msg.reply('🔄 Reiniciando bot...');
+        process.exit(0);
     }
 });
+
+client.initialize();
