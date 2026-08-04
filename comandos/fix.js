@@ -4,7 +4,7 @@ const execAsync = promisify(exec);
 
 export default {
     name: 'fix',
-    async run(msg, client, usedPrefix) {
+    async run(msg, client, usedprefix) {
         await msg.reply('🔄 Actualizando desde GitHub y reiniciando...');
         try {
             const { stdout } = await execAsync('git pull');
