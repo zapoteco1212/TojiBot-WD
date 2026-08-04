@@ -43,7 +43,7 @@ const menuToji = (usuario, contenido) => {
 
 📜 *DATOS DEL CONTRATO*
 ━━━━━━━━━━━━━━━━━━━━━━━
-✦ Creador  :: ${TOJI.CREADOR}
+✦ Creador  :: ${Werkito.CREADOR}
 ✦ Versión  :: ${TOJI.VERSION}
 ✦ Fecha    :: ${fecha}
 ✦ API      :: ${TOJI.API}
