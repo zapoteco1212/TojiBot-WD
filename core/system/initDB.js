@@ -1,16 +1,12 @@
-cd ~/TojiBot-WD
-cat > core/system/initDB.js << 'EOF'
 let isNumber = (x) => typeof x === 'number' &&!isNaN(x)
-
 function initDB(m, client) {
   const jid = client.user.id.split(':')[0] + '@s.whatsapp.net'
-
   const settings = global.db.data.settings[jid] ||= {}
   settings.self??= false
   settings.prefix??= ['/', '!', '.', '#', '>']
   settings.commandsejecut??= isNumber(settings.commandsejecut)? settings.commandsejecut : 0
   settings.id??= '120363198641161536@newsletter'
-  settings.nameid??= '⚔️ Toji Fushiguro - TojiBot-WD Oficial'
+  settings.nameid??= 'Toji Fushiguro - TojiBot-WD Oficial'
   settings.type??= 'Owner'
   settings.link??= 'https://github.com/zapoteco1212/TojiBot-WD'
   settings.banner??= 'https://i.imgur.com/TojiFushiguroBanner.jpg'
@@ -20,7 +16,6 @@ function initDB(m, client) {
   settings.botname??= 'TojiBot-WD'
   settings.owner??= '527444317595'
   settings.ownername??= 'zapoteco1212'
-
   const user = global.db.data.users[m.sender] ||= {}
   user.name??= m.pushName
   user.exp = isNumber(user.exp)? user.exp : 0
@@ -32,17 +27,12 @@ function initDB(m, client) {
   user.registered??= false
   user.banned??= false
   user.premium??= false
-
   const chat = global.db.data.chats[m.chat] ||= {}
   chat.isBanned??= false
   chat.welcome??= true
   chat.antiLink??= false
   chat.antiToxic??= false
   chat.onlyAdmin??= false
-
   return { settings, user, chat }
 }
-
 export default initDB;
-EOF
-node main.js
