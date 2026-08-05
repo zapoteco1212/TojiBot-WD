@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// TojiBot-WD by zapoteco1212 - Sistema de Carga de Comandos
 global.comandos = new Map();
 global.plugins = {};
 const pluginCache = new Map();
@@ -40,8 +39,8 @@ async function seeCommands(dir = commandsFolder) {
       const comando = imported.default;
       const pluginName = fileOrFolder.replace(".js", "");
       global.plugins[pluginName] = imported;
-      if (!comando?.command || typeof comando.run!== "function") continue;
-      const cmds = Array.isArray(comando.command)? comando.command : [comando.command];
+      if (!comando?.command || typeof comando.run !== "function") continue;
+      const cmds = Array.isArray(comando.command) ? comando.command : [comando.command];
       cmds.forEach(cmd => {
         if (!cmd) return;
         global.comandos.set(cmd.toLowerCase(), {
@@ -50,4 +49,15 @@ async function seeCommands(dir = commandsFolder) {
           category: comando.category || "toji",
           isOwner: comando.isOwner || false,
           isAdmin: comando.isAdmin || false,
-          bot
+          isBotAdmin: comando.isBotAdmin || false,
+          isGroup: comando.isGroup || false
+        });
+      });
+    } catch (e) {
+      console.log(`[ TojiBot-WD ] Error en ${fileOrFolder}: ${e.message}`);
+    }
+  }
+}
+
+export default seeCommands;
+export { seeCommands };
