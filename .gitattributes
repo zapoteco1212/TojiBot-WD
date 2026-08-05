@@ -1,1 +1,17 @@
+# TojiBot-WD by zapoteco1212
+# Auto detect text files and perform LF normalization
+* text=auto
 
+# Scripts y JS siempre LF
+*.js text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+
+# Binarios no tocar
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.mp4 binary
+*.mp3 binary
+*.opus binary
