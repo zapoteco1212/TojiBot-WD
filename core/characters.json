@@ -1,0 +1,69 @@
+{
+  "_TojiBot-WD": {
+    "bot": "TojiBot-WD",
+    "author": "zapoteco1212",
+    "version": "2.0.0",
+    "currency": "TojiCoins",
+    "note": "Gacha Database - Toji Fushiguro Edition"
+  },
+  "10292336": {
+    "name": "Blue Archive",
+    "tags": ["BA", "TojiGacha"],
+    "characters": [
+      {
+        "id": "815839",
+        "name": "Aru",
+        "gender": "Mujer",
+        "tags": ["aru_(blue_archive)"],
+        "value": 7890
+      }
+    ]
+  },
+  "99999999": {
+    "name": "Jujutsu Kaisen - TojiBot Exclusive",
+    "tags": ["JJK", "TojiBot-WD"],
+    "characters": [
+      {
+        "id": "toji_001",
+        "name": "Toji Fushiguro",
+        "gender": "Hombre",
+        "tags": ["toji_fushiguro", "toji_bot"],
+        "value": 15000,
+        "isToji": true,
+        "rarity": "SSS"
+      },
+      {
+        "id": "toji_002",
+        "name": "Gojo Satoru",
+        "gender": "Hombre",
+        "tags": ["gojo_satoru"],
+        "value": 13000,
+        "rarity": "SS"
+      },
+      {
+        "id": "toji_003",
+        "name": "Megumi Fushiguro",
+        "gender": "Hombre",
+        "tags": ["megumi_fushiguro"],
+        "value": 10000,
+        "rarity": "S"
+      },
+      {
+        "id": "toji_004",
+        "name": "Maki Zenin",
+        "gender": "Mujer",
+        "tags": ["maki_zenin"],
+        "value": 9500,
+        "rarity": "S"
+      },
+      {
+        "id": "toji_005",
+        "name": "Yuta Okkotsu",
+        "gender": "Hombre",
+        "tags": ["yuta_okkotsu"],
+        "value": 9000,
+        "rarity": "A"
+      }
+    ]
+  }
+}
