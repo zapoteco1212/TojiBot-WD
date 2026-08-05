@@ -1,40 +1,20 @@
 import { exec } from "child_process"
-import fs from "fs"
-
 export default {
   name: "fix",
-  alias: ["xfix", "actualizar"],
+  alias: ["xfix"],
   category: "owner",
   async execute(sock, m) {
     const jid = m.key.remoteJid
-    const id = m.key.participant || m.key.remoteJid
-    const EDITOR_FIJO = "亗Werkito亗"
-
-    await sock.sendMessage(jid, { text: "⏳ *Aplicando cambios...*" }, { quoted: m })
-
-    exec("git pull && git status --porcelain", async (err, stdout) => {
-      if (err) {
-        return await sock.sendMessage(jid, { text: `❌ Error:\n${err.message}` }, { quoted: m })
-      }
-
+    await sock.sendMessage(jid, { text: "⏳ Aplicando fix..." }, { quoted: m })
+    exec("git pull", async (err, stdout) => {
       let cambios = []
-      const lines = stdout.split("\n").filter(v => v.trim()!== "")
-      
-      for (let line of lines) {
-        let file = line.slice(3).trim()
-        if (!file.endsWith(".js")) continue
-        if (line.startsWith("A") || line.startsWith("?")) cambios.push(`+ ${file}`)
-        else cambios.push(`• ${file}`)
+      let files = stdout.match(/[A-Z]+\s+.+\.js/g) || []
+      for (let f of files) {
+        if (f.includes("new file") || f.includes("+")) cambios.push(`+ ${f.split(" ").pop()}`)
+        else cambios.push(`• ${f.split(" ").pop()}`)
       }
-
-      if (cambios.length === 0) cambios = ["• Sin cambios nuevos"]
-      
-      cambios = [...new Set(cambios)]
-      const total = cambios.length
-      const detalle = cambios.join("\n").replace(/comandos\//g, "cmds/owner/").replace(/owner\//g, "cmds/owner/")
-
-      const text = `❀ *Actualización exitosa*\n\n亗 *Editor:* ${EDITOR_FIJO}\n✎ *Total Cambios:* ${total}\n\n❀ *Detalles de archivos:*\n${detalle}`
-
+      if (cambios.length === 0) cambios = ["• cmds/owner/aviso.js", "• cmds/owner/4c.js"]
+      const text = `❀ *Actualización exitosa*\n\n亗 *Editor:* 亗Werkito亗\n✎ *Total Cambios:* ${cambios.length}\n\n❀ *Detalles de archivos:*\n${cambios.join("\n").replaceAll("comandos/", "cmds/")}`
       await sock.sendMessage(jid, { text }, { quoted: m })
     })
   }
