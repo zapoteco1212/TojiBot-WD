@@ -1,27 +1,50 @@
 import fs from "fs"
-const path = "./database/economy.json"
-function load() {
-  if (!fs.existsSync(path)) { fs.writeFileSync(path, JSON.stringify({})); return {} }
-  try { return JSON.parse(fs.readFileSync(path)) } catch { return {} }
+import path from "path"
+
+const dbFolder = "./database"
+const dbPath = path.join(dbFolder, "economy.json")
+
+if (!fs.existsSync(dbFolder)) {
+  fs.mkdirSync(dbFolder, { recursive: true })
 }
-function save(data) { fs.writeFileSync(path, JSON.stringify(data, null, 2)) }
+if (!fs.existsSync(dbPath)) {
+  fs.writeFileSync(dbPath, JSON.stringify({}, null, 2))
+}
+
+function loadDB() {
+  try {
+    return JSON.parse(fs.readFileSync(dbPath, "utf-8"))
+  } catch {
+    return {}
+  }
+}
+
+function saveDB(data) {
+  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2))
+}
+
 export function getUser(id) {
-  const db = load()
-  if (!db[id]) db[id] = { coins: 1000, lastWork: 0, lastDaily: 0 }
-  save(db)
+  const db = loadDB()
+  if (!db[id]) {
+    db[id] = { coins: 1000 }
+    saveDB(db)
+  }
   return db[id]
 }
+
 export function addCoins(id, amount) {
-  const db = load()
-  if (!db[id]) db[id] = { coins: 1000, lastWork: 0, lastDaily: 0 }
+  const db = loadDB()
+  if (!db[id]) db[id] = { coins: 1000 }
   db[id].coins += amount
-  if (db[id].coins < 0) db[id].coins = 0
-  save(db)
+  saveDB(db)
   return db[id].coins
 }
-export function setCooldown(id, type) {
-  const db = load()
-  if (!db[id]) db[id] = { coins: 1000, lastWork: 0, lastDaily: 0 }
-  db[id][type] = Date.now()
-  save(db)
+
+export function removeCoins(id, amount) {
+  const db = loadDB()
+  if (!db[id]) db[id] = { coins: 1000 }
+  db[id].coins -= amount
+  if (db[id].coins < 0) db[id].coins = 0
+  saveDB(db)
+  return db[id].coins
 }
