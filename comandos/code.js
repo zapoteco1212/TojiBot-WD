@@ -1,59 +1,99 @@
-import { startSubBot } from '../../core/subs.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url'
+mkdir -p core Sessions/Subs
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
-let commandFlags = {}
+cat > core/subs.js <<'EOF'
+import makeWASocket, { useMultiFileAuthState, makeCacheableSignalKeyStore } from "@whiskeysockets/baileys"
+import pino from "pino"
+import fs from "fs"
+import path from "path"
+
+export async function startSubBot(m, sock, caption, isCode, phoneNumber, chatId, commandFlags, isCommand) {
+  const id = phoneNumber.replace(/\D/g, '')
+  const sessionPath = path.join(process.cwd(), "Sessions", "Subs", id)
+  if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true })
+
+  const { state, saveCreds } = await useMultiFileAuthState(sessionPath)
+
+  const subSock = makeWASocket({
+    logger: pino({ level: "silent" }),
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" }))
+    },
+    browser: ["TojiBot Sub", "Chrome", "1.0"]
+  })
+
+  subSock.ev.on("creds.update", saveCreds)
+
+  if (isCode) {
+    await new Promise(r => setTimeout(r, 2000))
+    if (!subSock.authState.creds.registered) {
+      try {
+        let code = await subSock.requestPairingCode(id)
+        code = code?.match(/.{1,4}/g)?.join("-") || code
+        await sock.sendMessage(chatId, { text: `${caption}\n\n*Tu código es:* ${code}` }, { quoted: m })
+      } catch (e) {
+        await sock.sendMessage(chatId, { text: "Error al generar código: " + e.message }, { quoted: m })
+      }
+    }
+  } else {
+    subSock.ev.on("connection.update", async (update) => {
+      const { qr } = update
+      if (qr) {
+        await sock.sendMessage(chatId, { text: caption }, { quoted: m })
+        // Aquí podrías mandar el QR como imagen si quieres
+      }
+    })
+  }
+
+  subSock.ev.on("connection.update", async (update) => {
+    if (update.connection === "open") {
+      await sock.sendMessage(chatId, { text: `✅ Sub-Bot ${id} conectado con éxito` }, { quoted: m })
+    }
+  })
+}
+EOF
+
+cat > comandos/code.js <<'EOF'
+import { startSubBot } from "../core/subs.js"
+import fs from "fs"
+import path from "path"
+
+let lastUsed = {}
 
 export default {
-  command: ['code', 'qr'],
-  category: 'socket',
-  run: async (client, m, args, usedPrefix, command) => {
-    let time = global.db.data.users[m.sender].Subs + 120000 || ''
-    if (new Date() - global.db.data.users[m.sender].Subs < 120000) {
-      return client.reply(m.chat,`😔 Debes esperar *${msToTime(time - new Date())}* para volver a intentar vincular tú cuenta.`, m)
-    }
-    const subsPath = path.join(dirname, '../../Sessions/Subs')
-    const subsCount = fs.existsSync(subsPath)
-      ? fs.readdirSync(subsPath).filter((dir) => {
-          const credsPath = path.join(subsPath, dir, 'creds.json')
-          return fs.existsSync(credsPath)
-        }).length : 0
-    const maxSubs = 0
-    if (subsCount >= maxSubs) {
-      return client.reply(m.chat, '✐ No se han encontrado espacios disponibles para registrar un `Sub-Bot`.', m)
-    }
-    commandFlags[m.sender] = true
-    const rtx = '`✤` Vincula tu *cuenta* usando el *codigo.*\n\n> ✥ Sigue las *instrucciones*\n\n*›* Click en los *3 puntos*\n*›* Toque *dispositivos vinculados*\n*›* Vincular *nuevo dispositivo*\n*›* Selecciona *Vincular con el número de teléfono*\n\nꕤ *`Importante`*\n> ₊·( 🜸 ) ➭ Este *Código* solo funciona en el *número que lo solicito*'
-    const rtx2 = "`✤` Vincula tu *cuenta* usando *codigo qr.*\n\n> ✥ Sigue las *instrucciones*\n\n*›* Click en los *3 puntos*\n*›* Toque *dispositivos vinculados*\n*›* Vincular *nuevo dispositivo*\n*›* Escanea el código *QR.*\n\n> ₊·( 🜸 ) ➭ Recuerda que no es recomendable usar tu cuenta principal para registrar un socket."
-    
-    const isCode = /^(code)$/.test(command)
-    const isCommands = /^(code|qr)$/.test(command)
-    const isCommand = isCommands ? true : false
-    const caption = isCode ? rtx : rtx2
-    const phone = args[0] ? args[0].replace(/\D/g, '') : m.sender.split('@')[0]
-    await startSubBot(m, client, caption, isCode, phone, m.chat, commandFlags, isCommand)
-    global.db.data.users[m.sender].Subs = new Date() * 1
-  }
-};
+  name: "code",
+  category: "socket",
+  async execute(sock, m) {
+    const jid = m.key.remoteJid
+    const args = (m.message?.conversation || m.message?.extendedTextMessage?.text || "").split(" ").slice(1)
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-function msToTime(duration) {
-  var milliseconds = parseInt((duration % 1000) / 100),
-    seconds = Math.floor((duration / 1000) % 60),
-    minutes = Math.floor((duration / (1000 * 60)) % 60),
-    hours = Math.floor((duration / (1000 * 60 * 60)) % 24)
-  hours = hours < 10 ? '0' + hours : hours
-  minutes = minutes > 0 ? minutes : ''
-  seconds = seconds < 10 && minutes > 0 ? '0' + seconds : seconds
-  if (minutes) {
-    return `${minutes} minuto${minutes > 1 ? 's' : ''}, ${seconds} segundo${seconds > 1 ? 's' : ''}`
-  } else {
-    return `${seconds} segundo${seconds > 1 ? 's' : ''}`
+    if (lastUsed[m.sender] && Date.now() - lastUsed[m.sender] < 120000) {
+      const wait = Math.ceil((120000 - (Date.now() - lastUsed[m.sender])) / 1000)
+      await sock.sendMessage(jid, { text: `😔 Debes esperar ${wait}s para volver a intentar` }, { quoted: m })
+      return
+    }
+
+    const phone = args[0]?.replace(/\D/g, '') || m.sender.split("@")[0]
+    const caption = "`✤` Vincula tu *cuenta* usando el *codigo.*\n\n> ✥ Sigue las *instrucciones*\n\n*›* Click en los *3 puntos*\n*›* Dispositivos vinculados\n*›* Vincular nuevo dispositivo\n*›* Vincular con número\n\nTu número: ${phone}"
+
+    await startSubBot(m, sock, caption, true, phone, jid, {}, true)
+    lastUsed[m.sender] = Date.now()
   }
 }
+EOF
+
+cat > comandos/qr.js <<'EOF'
+import { startSubBot } from "../core/subs.js"
+export default {
+  name: "qr",
+  category: "socket",
+  async execute(sock, m) {
+    const jid = m.key.remoteJid
+    const caption = "`✤` Vincula con QR\n\n> 3 puntos > Dispositivos vinculados > Vincular dispositivo > Escanea el QR"
+    const phone = m.sender.split("@")[0]
+    await startSubBot(m, sock, caption, false, phone, jid, {}, true)
+  }
+}
+EOF
+
+node index.js
