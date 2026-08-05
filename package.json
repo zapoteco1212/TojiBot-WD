@@ -1,4 +1,3 @@
-cat > package.json <<'EOF'
 {
   "name": "tojibot-wd",
   "version": "2.0.0",
@@ -14,4 +13,3 @@ cat > package.json <<'EOF'
     "sharp": "^0.33.0"
   }
 }
-EOF
