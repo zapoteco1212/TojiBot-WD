@@ -1,4 +1,5 @@
-module.exports = {
+cat > comandos/menu.js <<'EOF'
+export default {
   name: "menu",
   async execute(sock, m) {
     const jid = m.key.remoteJid
@@ -12,3 +13,4 @@ module.exports = {
     await sock.sendMessage(jid, { text: menu })
   }
 }
+EOF
