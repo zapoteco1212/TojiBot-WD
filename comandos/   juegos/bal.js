@@ -1,10 +1,11 @@
 import { getUser } from "../../core/econ.js"
-export default {
-  name: "bal",
-  run: async (sock, msg, args) => {
-    const id = msg.key.remoteJid
-    const user = getUser(id)
-    const text = `💰 *Billetera*\n\nTienes: *${user.coins}* TojiCoins`
-    await sock.sendMessage(id, { text }, { quoted: msg })
-  }
+
+let handler = async (m, { sock }) => {
+  const id = m.key.remoteJid
+  const user = getUser(id)
+  await sock.sendMessage(id, { text: `💰 Tienes: *${user.coins}* TojiCoins` }, { quoted: m })
 }
+
+handler.command = ["bal", "billetera", "coins"]
+handler.tags = ["juegos"]
+export default handler
