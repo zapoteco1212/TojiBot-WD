@@ -1,5 +1,6 @@
 export default {
-  name: "menu",
+    name: "menu",
+  alias: ["help", "ayuda", "menú", "h"],
   category: "comandos",
   async execute(sock, m) {
     const jid = m.key.remoteJid
