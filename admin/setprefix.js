@@ -1,27 +1,31 @@
-import fs from "fs"
+import { prefixes, updatePrefixes } from "../../prefix.js"
 
 export default {
   name: "setprefix",
-  alias: ["setprefijo", "prefijo"],
+  alias: ["setprefijo", "prefijo", "setp"],
   category: "admin",
   async execute(sock, m, args) {
     const jid = m.key.remoteJid
-    const newPrefix = args[0]
-
-    if (!newPrefix) {
+    if (!args[0]) {
       return await sock.sendMessage(jid, {
-        text: `❌ Usa así:\n#${"setprefix"}!\n#${"setprefix"} †\n#${"setprefix"}?\n\nPara poner varios: #setprefix!,?,†`
+        text: `╭━━━〔 ⚙️ PREFIJO ACTUAL 〕━━━⬣
+┃ Actual: ${prefixes.map(p=>`"${p}"`).join(", ")}
+┃
+┃ Usa: #setprefix!
+┃ Usa: #setprefix †
+┃ Usa: #setprefix!,?,†,.,-
+╰━━━━━━━━━━━━━━━━━━⬣`
       }, { quoted: m })
     }
 
-    // Soporta varios prefijos separados por coma:!,?,†
-    const prefixes = newPrefix.split(",").map(p => p.trim()).filter(p => p.length > 0)
+    const newPrefixes = args[0].split(",").map(p => p.trim()).filter(p => p)
 
-    const path = "./database/prefix.json"
-    fs.writeFileSync(path, JSON.stringify({ prefixes }, null, 2))
+    if (newPrefixes.length === 0) return
+
+    updatePrefixes(newPrefixes)
 
     await sock.sendMessage(jid, {
-      text: `╭━━━━━━━━━━━━━━⬣\n┃ ✅ *Prefijo cambiado*\n┃ ✦ Nuevo prefijo: ${prefixes.map(p=>`"${p}"`).join(", ")}\n╰━━━━━━━━━━━━━━⬣\n\n> Ahora usa ${prefixes[0]}menu`
+      text: `✅ Prefijo cambiado a: ${newPrefixes.map(p=>`"${p}"`).join(", ")}\n\nPrueba: ${newPrefixes[0]}menu`
     }, { quoted: m })
   }
 }
