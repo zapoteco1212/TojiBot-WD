@@ -33,6 +33,10 @@ async function loadComandos() {
       const cmd = mod.default
       if (!cmd?.name || typeof cmd.execute !== "function") continue
       comandos.set(cmd.name, cmd)
+      // también guarda alias
+      if (cmd.alias) {
+        for (const al of cmd.alias) comandos.set(al, cmd)
+      }
       console.log(`✅ Cargado: ${cmd.name} [${path.basename(path.dirname(file))}]`)
     } catch (e) {
       console.log(`❌ ${path.basename(file)}:`, e.message)
@@ -62,9 +66,28 @@ async function start() {
     const text = m.message.conversation || m.message.extendedTextMessage?.text || ""
     const usedPrefix = prefixes.find(p => text.startsWith(p))
     if (!usedPrefix) return
-    const args = text.slice(usedPrefix.length).trim().split(/ +/)
-    const cmdName = args.shift()?.toLowerCase()
+    
+    let args = text.slice(usedPrefix.length).trim().split(/ +/)
+    let cmdName = args.shift()?.toLowerCase()
     if (!cmdName) return
+
+    // PARCHE: para que jale #setprefix† sin espacio
+    if (cmdName.startsWith("setprefix") && cmdName !== "setprefix") {
+      const extra = cmdName.slice("setprefix".length)
+      if (extra) args.unshift(extra)
+      cmdName = "setprefix"
+    }
+    if (cmdName.startsWith("setprefijo") && cmdName !== "setprefijo") {
+      const extra = cmdName.slice("setprefijo".length)
+      if (extra) args.unshift(extra)
+      cmdName = "setprefijo"
+    }
+    if (cmdName.startsWith("prefijo") && cmdName !== "prefijo") {
+      const extra = cmdName.slice("prefijo".length)
+      if (extra) args.unshift(extra)
+      cmdName = "prefijo"
+    }
+
     if (cmdName === "fix") {
       await sock.sendMessage(m.key.remoteJid, { text: "🔄 Actualizando..." }, { quoted: m })
       try { execSync("git stash && git pull origin main", { stdio: "inherit" }); await loadComandos(); await sock.sendMessage(m.key.remoteJid, { text: "✅ Actualizado" }, { quoted: m }) } catch (e) { await sock.sendMessage(m.key.remoteJid, { text: `❌ ${e.message}` }, { quoted: m }) }
