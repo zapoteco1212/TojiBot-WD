@@ -1,17 +1,33 @@
-import { getUser, addCoins, setCooldown } from "../../core/econ.js"
+import { getUser, addCoins } from "../../core/econ.js"
+
 export default {
   name: "daily",
+  alias: ["diario", "reclamar"],
   category: "juegos",
   async execute(sock, m) {
+    const id = m.key.participant || m.key.remoteJid
     const jid = m.key.remoteJid
-    const sender = m.key.participant || jid
-    const user = getUser(sender)
+    const user = getUser(id)
+    
     const now = Date.now()
-    if (now - user.lastDaily < 86400000) {
-      const hrs = Math.ceil((86400000 - (now - user.lastDaily))/1000/3600)
-      await sock.sendMessage(jid, { text: `⏳ Ya reclamaste tu daily, vuelve en ${hrs}h` }, { quoted: m })
-      return
+    const cooldown = 24 * 60 * 60 * 1000 // 24h
+    
+    if (user.lastDaily && now - user.lastDaily < cooldown) {
+      const remaining = cooldown - (now - user.lastDaily)
+      const h = Math.floor(remaining / 3600000)
+      const min = Math.floor((remaining % 3600000) / 60000)
+      return await sock.sendMessage(jid, { text: `⏳ Ya reclamaste. Vuelve en ${h}h ${min}m` }, { quoted: m })
     }
-    addCoins(sender, 1000)
-    setCooldown(sender, "lastDaily")
-    await sock.sendMessage(jid, { text: `
+    
+    const reward = 500
+    addCoins(id, reward)
+    
+    // guardar tiempo
+    const fs = await import("fs")
+    const db = JSON.parse(fs.readFileSync("./database/economy.json", "utf-8"))
+    db[id].lastDaily = now
+    fs.writeFileSync("./database/economy.json", JSON.stringify(db, null, 2))
+    
+    await sock.sendMessage(jid, { text: `✅ Reclamaste tu daily!\n💰 +${reward} TojiCoins` }, { quoted: m })
+  }
+}
