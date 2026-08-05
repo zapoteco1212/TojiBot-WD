@@ -1,35 +1,42 @@
-import fs from 'fs';
 import { watchFile, unwatchFile } from 'fs'
+import chalk from 'chalk'
 import { fileURLToPath } from 'url'
 
-const botOwner = ['527444200627'] 
+global.owner = [
+  '527444200627'
+]
 
-const mainOwners = []
+global.mods = []
+global.prems = []
+global.botNumber = '527444200627'
 
-const extraOwners = []
+global.sessionName = './Sessions/Owner'
+global.botname = 'TojiBot-WD'
+global.namebot = 'TojiBot-WD'
+global.wm = 'TojiBot-WD by zapoteco1212'
+global.vs = '2.0.0 - WD Edition'
+global.author = 'zapoteco1212'
+global.premium = true
 
-global.owner = [...botOwner, ...mainOwners, ...extraOwners]
-global.botNumber = ''
+global.packname = 'TojiBot-WD'
+global.stickerpack = 'TojiBot-WD\nby zapoteco1212'
 
-global.sessionName = 'Sessions/TojiBot'
-global.version = '^1.0 - TojiBot'
-global.dev = "© TojiBot | zapoteco1212"
-global.links = {
-  api: 'https://api.evogb.org',
-  channel: "https://whatsapp.com/channel/TU_CANAL_AQUI",
-  github: "https://github.com/zapoteco1212",
-  gmail: "tu_correo@gmail.com"
+global.dbdata = {
+  users: {},
+  chats: {},
+  stats: {},
+  msgs: {},
+  sticker: {},
+  settings: {}
 }
-global.my = {
-  ch: '120363401404146384@newsletter',
-  name: 'TojiBot - Official Channel',
-}
 
-global.mess = {
-  socket: '《✧》 Este comando solo puede ser ejecutado por un Socket.',
-  admin: '《✧》 Este comando solo puede ser ejecutado por los Administradores del Grupo.',
-  botAdmin: '《✧》 Este comando solo puede ser ejecutado si el Socket es Administrador del Grupo.'
-}
+global.libreria = 'Baileys'
+global.vs = 'TojiBot-WD'
+global.lenguaje = 'es'
 
-global.APIs = {
-  axi
+let file = fileURLToPath(import.meta.url)
+watchFile(file, () => {
+  unwatchFile(file)
+  console.log(chalk.yellowBright(`Actualizado settings.js`))
+  import(`${file}?update=${Date.now()}`)
+})
