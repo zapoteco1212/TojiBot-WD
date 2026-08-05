@@ -1,20 +1,41 @@
-import { getUser, addCoins, setCooldown } from "../../core/econ.js"
+import { addCoins, getCooldown, setCooldown } from "../core/econ.js"
+
 export default {
   name: "work",
+  alias: ["trabajar", "chambear"],
   category: "juegos",
-  async execute(sock, m) {
-    const jid = m.key.remoteJid
-    const sender = m.key.participant || jid
-    const user = getUser(sender)
-    const now = Date.now()
-    if (now - user.lastWork < 60000) {
-      const sec = Math.ceil((60000 - (now - user.lastWork))/1000)
-      await sock.sendMessage(jid, { text: `⏳ Espera ${sec}s para volver a trabajar` }, { quoted: m })
-      return
+  description: "Trabaja y gana monedas",
+
+  async execute(m, { sock }) {
+    const cooldown = getCooldown(m.sender, "work")
+    if (cooldown > 0) {
+      const seg = Math.ceil(cooldown / 1000)
+      const min = Math.floor(seg / 60)
+      const s = seg % 60
+      return sock.sendMessage(m.chat, {
+        text: `⏳ *Ya trabajaste*\n\nVuelve en: *${min}m ${s}s* para volver a chambear.`
+      }, { quoted: m })
     }
-    const ganancia = Math.floor(Math.random() * 300) + 200
-    addCoins(sender, ganancia)
-    setCooldown(sender, "lastWork")
-    await sock.sendMessage(jid, { text: `💼 Trabajaste y ganaste ${ganancia} coins 💰\nSaldo: ${user.coins + ganancia}` }, { quoted: m })
+
+    const trabajos = [
+      "👨‍💻 Programador",
+      "👷 Albañil",
+      "🍔 Cocinero",
+      "🚚 Repartidor",
+      "👮 Policía",
+      "👨‍🏫 Maestro",
+      "🎨 Diseñador",
+      "⛏️ Minero"
+    ]
+
+    const trabajo = trabajos[Math.floor(Math.random() * trabajos.length)]
+    const ganancia = Math.floor(Math.random() * (500 - 150 + 1)) + 150
+
+    addCoins(m.sender, ganancia)
+    setCooldown(m.sender, "work", 5 * 60 * 1000) // 5 minutos
+
+    await sock.sendMessage(m.chat, {
+      text: `✅ *TRABAJO COMPLETADO*\n\n💼 Trabajo: ${trabajo}\n💰 Ganaste: *${ganancia} coins*\n\nUsa #bal para ver tu dinero`
+    }, { quoted: m })
   }
 }
