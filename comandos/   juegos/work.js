@@ -1,4 +1,4 @@
-import { addCoins, getCooldown, setCooldown } from "../core/econ.js"
+import { addCoins, getCooldown, setCooldown } from "../../core/econ.js"
 
 export default {
   name: "work",
