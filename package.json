@@ -1,18 +1,17 @@
 cat > package.json <<'EOF'
 {
   "name": "tojibot-wd",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "main": "index.js",
-  "scripts": { "start": "node index.js" },
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.8",
-    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^6.7.0",
     "pino": "^8.19.0",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "sharp": "^0.33.0"
   }
 }
 EOF
-
-rm -rf node_modules package-lock.json
-npm install --no-audit
