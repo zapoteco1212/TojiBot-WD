@@ -1,4 +1,4 @@
-cat > comandos/menu.js <<'EOF'
+
 export default {
   name: "menu",
   category: "comandos",
