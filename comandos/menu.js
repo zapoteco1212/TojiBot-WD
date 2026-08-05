@@ -1,4 +1,3 @@
-
 export default {
   name: "menu",
   category: "comandos",
@@ -16,28 +15,22 @@ export default {
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭━━━〔 ⚡ *COMANDOS* 〕━━━⬣
-┃ ✦ .ping ➳ Velocidad del bot
-┃ ✦ .menu ➳ Este menú
-┃ ✦ .help ➳ Ayuda
+┃ ✦ #ping ➳ Velocidad del bot
+┃ ✦ #menu ➳ Este menú
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭━━━〔 🎮 *JUEGOS* 〕━━━⬣
-┃ ✦ .ppt ➳ Piedra Papel Tijera
-┃      Ej: .ppt piedra
+┃ ✦ #ppt ➳ Piedra Papel Tijera
+┃      Ej: #ppt piedra
 ╰━━━━━━━━━━━━━━━━━━⬣
 
 ╭━━━〔 🎨 *STICKERS* 〕━━━⬣
-┃ ✦ .s / .sticker
+┃ ✦ #s / #sticker
 ┃   ↳ Responde a una imagen
 ╰━━━━━━━━━━━━━━━━━━⬣
 
-╭━━━〔 👑 *TOJI CODE* 〕━━━⬣
-┃ ✦ .code 521xxx
-┃   ↳ Genera sub-bot
-╰━━━━━━━━━━━━━━━━━━⬣
 > ✨ *Bot hecho por Toji - Zapoteco* ✨`
 
     await sock.sendMessage(jid, { text: menu }, { quoted: m })
   }
 }
-EOF
