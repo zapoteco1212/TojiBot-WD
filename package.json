@@ -1,61 +1,32 @@
 {
   "name": "TojiBot-WD",
   "version": "2.0.0",
-  "description": "TojiBot-WD - WhatsApp Bot Multi Device by zapoteco1212 | Toji Fushiguro Edition",
+  "description": "TojiBot-WD by zapoteco1212",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
     "qr": "node index.js --qr",
-    "code": "node index.js code",
-    "format": "prettier --write ."
+    "code": "node index.js code"
   },
-  "keywords": [
-    "TojiBot-WD",
-    "toji-bot",
-    "whatsapp-bot",
-    "baileys-md",
-    "zapoteco1212",
-    "toji-fushiguro"
-  ],
   "author": "zapoteco1212",
   "license": "MIT",
-  "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
-  },
   "dependencies": {
-    "@vitalets/google-translate-api": "^8.0.0",
     "@whiskeysockets/baileys": "github:this-xys/baileys",
-    "aptoide-scraper": "github:DIEGO-OFC/dv-aptoide-scraper",
-    "axios": "^0.24.0",
-    "axios-cookiejar-support": "^5.0.3",
-    "better-sqlite3": "^12.4.1",
+    "axios": "^1.7.2",
     "cfonts": "latest",
     "chalk": "^4.1.2",
     "cheerio": "npm:cheerio@1.0.0-rc.12",
-    "chess.js": "^1.0.0-beta.6",
-    "fluent-ffmpeg": "^2.1.2",
     "form-data": "^4.0.0",
-    "got-scraping": "^4.0.0",
     "gradient-string": "^2.0.2",
-    "grapheme-splitter": "^1.0.4",
     "human-readable": "^0.2.1",
-    "jimp": "^1.6.0",
-    "lodash": "latest",
-    "moment": "^2.29.4",
     "moment-timezone": "^0.5.37",
     "node-cache": "latest",
-    "node-fetch": "^3.2.10",
-    "node-webpmux": "^3.2.0",
-    "pino": "^8.8.0",
-    "qrcode": "^1.5.4",
+    "node-fetch": "^3.3.2",
+    "pino": "^8.19.0",
     "qrcode-terminal": "^0.12.0",
     "readline-sync": "^1.4.10",
-    "syntax-error": "^1.4.0",
-    "tough-cookie": "^4.1.4",
-    "ws": "^8.18.3",
-    "yargs": "^18.0.0",
-    "yt-search": "^2.10.4"
+    "ws": "^8.18.0",
+    "yt-search": "^2.12.1"
   }
 }
