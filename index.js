@@ -9,9 +9,7 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import readlineSync from "readline-sync";
-import os from "os";
 import { smsg } from "./core/message.js";
-import db from "./core/system/database.js";
 import { startModBot } from './core/mods.js';
 import { startPremBot } from './core/prems.js';
 import { startSubBot } from './core/subs.js';
@@ -21,43 +19,29 @@ const log = {
   info: (msg) => console.log(chalk.bgBlue.white.bold(`INFO`), chalk.white(msg)),
   success: (msg) => console.log(chalk.bgGreen.white.bold(`SUCCESS`), chalk.greenBright(msg)),
   warn: (msg) => console.log(chalk.bgYellowBright.blueBright.bold(`WARNING`), chalk.yellow(msg)),
-  warning: (msg) => console.log(chalk.bgYellowBright.red.bold(`WARNING`), chalk.yellow(msg)),
   error: (msg) => console.log(chalk.bgRed.white.bold(`ERROR`), chalk.redBright(msg))
 };
 
-const maxCache = 100;
 let phoneNumber = global.botNumber || "";
-let phoneInput = "";
 const methodCodeQR = process.argv.includes("--qr");
 const methodCode = process.argv.includes("code");
 const DIGITS = (s = "") => String(s).replace(/\D/g, "");
-
 function normalizePhoneForPairing(input) {
   let s = DIGITS(input);
   if (!s) return "";
   if (s.startsWith("0")) s = s.replace(/^0+/, "");
-  if (s.length === 10 && s.startsWith("3")) s = "57" + s;
-  if (s.startsWith("52") && !s.startsWith("521") && s.length >= 12) s = "521" + s.slice(2);
-  if (s.startsWith("54") && !s.startsWith("549") && s.length >= 11) s = "549" + s.slice(2);
   return s;
 }
 
 const { say } = cfonts
 console.log(chalk.greenBright('\n⚔️ Iniciando TojiBot-WD...'))
-  say('TojiBot', {
-  align: 'center',           
-  gradient: ['green', 'cyan'] 
-})
-  say('WD Edition by zapoteco1212', {
-  font: 'console',
-  align: 'center',
-  gradient: ['cyan', 'green']
-})
+say('TojiBot', { align: 'center', gradient: ['green', 'cyan'] })
+say('WD Edition by zapoteco1212', { font: 'console', align: 'center', gradient: ['cyan', 'green'] })
 
 const botTypes = [
   { name: 'ModBot', folder: './Sessions/Mods', starter: startModBot },
   { name: 'PremBot', folder: './Sessions/Prems', starter: startPremBot },
-  { name: 'SubBot', folder: './Sessions/Subs', starter: startSubBot }  
+  { name: 'SubBot', folder: './Sessions/Subs', starter: startSubBot }
 ];
 
 if (!fs.existsSync('./tmp')) fs.mkdirSync('./tmp', { recursive: true });
@@ -78,7 +62,7 @@ async function loadBots() {
         reconnecting.add(userId);
         await starter(null, null, 'Auto reconexión', false, userId, sessionPath);
       } catch (e) {
-        console.log(chalk.gray(`[ TojiBot loadBots ] Error ${name} ${userId}: ${e?.message || e}`));
+        console.log(chalk.gray(`[ TojiBot ] Error ${name} ${userId}: ${e?.message || e}`));
       } finally {
         reconnecting.delete(userId);
       }
@@ -88,6 +72,104 @@ async function loadBots() {
   setTimeout(loadBots, 60 * 1000);
 }
 
-function cleanCache() {
-  try {
-    const tmpFolder
+let opcion;
+if (methodCodeQR) opcion = "1";
+else if (methodCode) opcion = "2";
+else if (!fs.existsSync("./Sessions/Owner/creds.json")) {
+  opcion = readlineSync.question(chalk.bold.white("\n⚔️ TojiBot-WD - Seleccione:\n") + chalk.greenBright("1. Con código QR\n") + chalk.cyan("2. Con código de 8 dígitos\n--> "));
+  while (!/^[1-2]$/.test(opcion)) {
+    console.log(chalk.bold.redBright(`Solo 1 o 2`));
+    opcion = readlineSync.question("--> ");
+  }
+  if (opcion === "2") {
+    console.log(chalk.bold.greenBright(`\nIngresa tu número TojiBot-WD\nEjemplo: 527444200627\n---> `));
+    let phoneInput = readlineSync.question("");
+    phoneNumber = normalizePhoneForPairing(phoneInput);
+  }
+}
+
+let reconexion = 0;
+const intentos = 15;
+async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState(global.sessionName);
+  const { version } = await fetchLatestBaileysVersion();
+  const logger = pino({ level: "silent" });
+  const sock = makeWASocket({
+    version, logger, printQRInTerminal: false,
+    browser: Browsers.macOS('Safari'),
+    auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, logger) },
+    markOnlineOnConnect: false,
+    generateHighQualityLinkPreview: true,
+    syncFullHistory: false,
+    getMessage: async () => "",
+  });
+  global.client = sock;
+  sock.isInit = false;
+  sock.ev.on("creds.update", saveCreds);
+
+  if (opcion === "2" && !fs.existsSync("./Sessions/Owner/creds.json")) {
+    setTimeout(async () => {
+      try {
+        if (!state.creds.registered) {
+          const pairing = await global.client.requestPairingCode(phoneNumber);
+          const codeBot = pairing?.match(/.{1,4}/g)?.join("-") || pairing;
+          console.log(chalk.bold.white(chalk.bgGreen(` TojiBot Código: `)), chalk.bold.white(codeBot));
+        }
+      } catch (err) {
+        console.log(chalk.red("Error TojiBot código:"), err);
+      }
+    }, 3000);
+  }
+
+  sock.sendText = (jid, text, quoted = "", options) => sock.sendMessage(jid, { text, ...options }, { quoted });
+  sock.ev.on("connection.update", async (update) => {
+    const { qr, connection, lastDisconnect } = update;
+    if (qr && (opcion == '1' || methodCodeQR)) {
+      console.log(chalk.green.bold("[ TojiBot-WD ] Escanea QR"));
+      qrcode.generate(qr, { small: true });
+    }
+    if (connection === "close") {
+      const reason = lastDisconnect?.error?.output?.statusCode || 0;
+      if (reason === DisconnectReason.loggedOut) {
+        exec("rm -rf ./Sessions/Owner/*"); process.exit(1);
+      } else {
+        reconexion++;
+        if (reconexion > intentos) process.exit(1);
+        const delay = Math.min(3000 * reconexion, 30000);
+        console.log(chalk.yellow(`Desconexión ${reason}, reconectando en ${delay/1000}s`));
+        setTimeout(startBot, delay);
+      }
+    }
+    if (connection === "open") {
+      reconexion = 0;
+      console.log(chalk.green.bold(`[ ⚔️ TojiBot-WD Conectado: ${sock.user.name || 'TojiBot'} ]`));
+    }
+  });
+
+  sock.ev.on('messages.upsert', async (chatUpdate) => {
+    try {
+      const kay = chatUpdate.messages[0];
+      if (!kay?.message) return;
+      if (kay.key?.remoteJid === 'status@broadcast') return;
+      kay.message = Object.keys(kay.message)[0] === 'ephemeralMessage' ? kay.message.ephemeralMessage.message : kay.message;
+      const m = await smsg(sock, kay);
+      main(sock, m, chatUpdate);
+    } catch (err) { console.log(err); }
+  });
+  try { await events(sock, null); } catch (err) { console.log(chalk.gray(`[ TojiBot ] → ${err}`)); }
+  sock.decodeJid = (jid) => {
+    if (!jid) return jid;
+    if (/:\d+@/gi.test(jid)) {
+      const decode = jidDecode(jid) || {};
+      return (decode.user && decode.server && decode.user + "@" + decode.server) || jid;
+    }
+    return jid;
+  };
+}
+
+(async () => { await loadBots(); })();
+(async () => {
+  global.loadDatabase()
+  console.log(chalk.gray('[ TojiBot-WD ] DB cargada.'))
+  await startBot();
+})();
