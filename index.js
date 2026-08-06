@@ -1,17 +1,18 @@
-// TojiBot-WD by zapoteco1212 - INDEX QR FIXED 100% - Baileys 6.7.18
+cat > index.js << 'EOF'
+// TojiBot-WD by zapoteco1212 - INDEX QR FIXED 100% - Baileys 6.7.18 - FIX NODE 26
 import { join, dirname } from 'path'
 import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
-import { setupMaster, fork } from 'cluster'
 import { watchFile, unwatchFile } from 'fs'
 import cfonts from 'cfonts'
-import { createInterface } from 'readline'
 import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 import { makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, Browsers } from '@whiskeysockets/baileys'
 import qrcode from 'qrcode-terminal'
 import pino from 'pino'
 import NodeCache from 'node-cache'
-import { Low, JSONFile } from 'lowdb'
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
 import lodash from 'lodash'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -23,7 +24,7 @@ cfonts.say('by zapoteco1212', { font: 'console', align: 'center', gradient: ['cy
 
 console.log('[ TojiBot-WD ] Iniciando... ⚔️')
 
-global.opts = new Object(yargs(process.argv.slice(2)).exitChecks(false).parse())
+global.opts = new Object(yargs(hideBin(process.argv)).parse())
 const msgRetryCounterCache = new NodeCache()
 const msgRetryCounterMap = (Message) => {
   const { msgRetryCounterCache: _msgRetryCounterCache } = Message
@@ -38,7 +39,7 @@ async function start() {
   const { state, saveCreds } = await useMultiFileAuthState(join(__dirname, './Session'))
   const { version } = await fetchLatestBaileysVersion()
   
-  global.db = new Low(new JSONFile(join(__dirname, './database.json')))
+  global.db = new Low(new JSONFile(join(__dirname, './database.json')), { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} })
   await global.db.read()
   global.db.data = global.db.data || { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {}, ...(global.db.data || {}) }
   global.loadDatabase = async function loadDatabase() {
@@ -57,7 +58,7 @@ async function start() {
   const conn = makeWASocket({
     version,
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: false, // lo imprimimos nosotros mejor
+    printQRInTerminal: false,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }))
@@ -94,14 +95,21 @@ async function start() {
     }
   })
 
-  // Cargar handler
-  const handler = await import('./handler.js')
+  // Cargar handler - FIX: tu bot no tiene handler.js, tiene main.js
+  let handler
+  try {
+    handler = await import('./handler.js')
+  } catch {
+    console.log('[ FIX ] handler.js no existe, cargando main.js...')
+    handler = await import('./main.js')
+  }
+  
   conn.handler = handler.handler.bind(conn)
   conn.ev.on('messages.upsert', conn.handler)
-  conn.ev.on('group-participants.update', handler.participantsUpdate.bind(conn))
-  conn.ev.on('groups.update', handler.groupsUpdate.bind(conn))
-  conn.ev.on('message.delete', handler.deleteUpdate.bind(conn))
-  conn.ev.on('call', handler.callUpdate.bind(conn))
+  if(handler.participantsUpdate) conn.ev.on('group-participants.update', handler.participantsUpdate.bind(conn))
+  if(handler.groupsUpdate) conn.ev.on('groups.update', handler.groupsUpdate.bind(conn))
+  if(handler.deleteUpdate) conn.ev.on('message.delete', handler.deleteUpdate.bind(conn))
+  if(handler.callUpdate) conn.ev.on('call', handler.callUpdate.bind(conn))
 
   setInterval(async () => { if (global.db.data) await global.db.write().catch(console.error) }, 10 * 1000)
 }
@@ -112,3 +120,4 @@ watchFile(__filename, () => {
   unwatchFile(__filename)
   console.log('[ TojiBot-WD ] index.js actualizado')
 })
+EOF
