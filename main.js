@@ -1,4 +1,3 @@
-cd ~/TojiBot-WD
 cat > core/message.js <<'ENDOFFILE'
 import ws from 'ws';
 import moment from 'moment';
@@ -29,7 +28,8 @@ export default async (client, m) => {
   const botJid = client.user.id.split(':')[0] + '@s.whatsapp.net' || client.user.lid;
   const chat = global.db?.data?.chats[m.chat] || {}
   const settings = global.db?.data?.settings[botJid] || {}
-  const user = global.db?.data?.users[sender] ||= {}
+  if (!global.db.data.users[sender]) global.db.data.users[sender] = {};
+  const user = global.db.data.users[sender];
   const users = chat.users?.[sender] || {}
   const pushname = m.pushName || 'Sin nombre';
   let groupMetadata = null
@@ -114,4 +114,3 @@ export default async (client, m) => {
   try { level(m); } catch {}
 };
 ENDOFFILE
-echo "handler OK"
