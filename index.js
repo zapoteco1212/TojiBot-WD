@@ -1,3 +1,5 @@
+cd ~/TojiBot-WD
+rm index.js
 cat > index.js << 'EOF'
 // TojiBot-WD by zapoteco1212 - INDEX QR FIXED 100% - Baileys 6.7.18 - FIX NODE 26
 import { join, dirname } from 'path'
@@ -22,15 +24,14 @@ const require = createRequire(__filename)
 cfonts.say('TojiBot-WD', { font: 'chrome', align: 'center', gradient: ['red', 'yellow'] })
 cfonts.say('by zapoteco1212', { font: 'console', align: 'center', gradient: ['cyan', 'blue'] })
 
-console.log('[ TojiBot-WD ] Iniciando... ⚔️')
+console.log('[ TojiBot-WD ] Iniciando...')
 
 global.opts = new Object(yargs(hideBin(process.argv)).parse())
 const msgRetryCounterCache = new NodeCache()
 const msgRetryCounterMap = (Message) => {
-  const { msgRetryCounterCache: _msgRetryCounterCache } = Message
   const id = lodash.get(Message, 'key.id')
-  if (id && _msgRetryCounterCache) {
-    const counter = _msgRetryCounterCache.get(id)
+  if (id && msgRetryCounterCache) {
+    const counter = msgRetryCounterCache.get(id)
     return counter ? counter + 1 : 1
   }
 }
@@ -77,25 +78,24 @@ async function start() {
   conn.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update
     if (qr) {
-      console.log('\n[ TojiBot-WD ] ESCANEA EL QR ⚔️\n')
+      console.log('\n[ TojiBot-WD ] ESCANEA EL QR\n')
       qrcode.generate(qr, { small: true })
     }
     if (connection === 'close') {
       const reason = lastDisconnect?.error?.output?.statusCode
-      console.log(`[ TojiBot-WD ] Conexión cerrada: ${reason}`)
+      console.log(`[ TojiBot-WD ] Conexion cerrada: ${reason}`)
       if (reason !== DisconnectReason.loggedOut) {
         console.log('[ TojiBot-WD ] Reconectando...')
         start()
       } else {
-        console.log('[ TojiBot-WD ] Sesión cerrada, borra Session y vuelve a escanear')
+        console.log('[ TojiBot-WD ] Sesion cerrada, borra Session y vuelve a escanear')
       }
     }
     if (connection === 'open') {
-      console.log('[ TojiBot-WD ] CONECTADO CON ÉXITO ⚔️')
+      console.log('[ TojiBot-WD ] CONECTADO CON EXITO')
     }
   })
 
-  // Cargar handler - FIX: tu bot no tiene handler.js, tiene main.js
   let handler
   try {
     handler = await import('./handler.js')
