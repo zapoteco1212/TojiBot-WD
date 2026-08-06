@@ -116,7 +116,8 @@ export default async (client, m) => {
     }
   }
 
-  // ==============================================
+  cd ~/TojiBot-WD && node -e "const f=require('fs').readFileSync('core/message.js','utf8').split('\n');f.splice(118,1);require('fs').writeFileSync('core/message.js',f.join('\n'));console.log('Línea 119 borrada')"
+    
   // 6. ESTADÍSTICAS DE USO (con fallback por si falla la fecha)
   // ==============================================
   let today;
